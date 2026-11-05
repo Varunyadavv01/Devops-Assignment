@@ -1,11 +1,17 @@
-def add(a, b):
-    return a + b
+from flask import Flask
 
+app = Flask(__name__)
 
-def main():
-    print("DevOps Lab 1 Application")
-    print("2 + 3 =", add(2, 3))
+@app.route("/")
+def home():
+    return """
+    <h1>DevOps Lab 2 - Version 2</h1>
+	<p>Kubernetes rolling update completed successfully!</p>
+    """
 
+@app.route("/health")
+def health():
+    return {"status": "healthy"}
 
 if __name__ == "__main__":
-    main()
+    app.run(host="0.0.0.0", port=5000)

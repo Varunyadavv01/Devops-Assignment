@@ -1,37 +1,29 @@
 pipeline {
     agent any
 
-    triggers {
-        pollSCM('H/2 * * * *')
-    }
-
     stages {
-        stage('Build') {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
             steps {
                 sh '''
-                    python3 -m venv venv
-                    . venv/bin/activate
-                    pip install -r requirements.txt
-                    python3 -m compileall app.py
+                    sudo -H -u user kubectl apply -f kubernetes/deployment.yaml
+                    sudo -H -u user kubectl apply -f kubernetes/service.yaml
+                    sudo -H -u user kubectl rollout status deployment/devops-lab2
                 '''
             }
         }
 
-        stage('Test') {
+        stage('Verify') {
             steps {
                 sh '''
-                    . venv/bin/activate
-                    pytest -v
-                '''
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                sh '''
-                    mkdir -p deploy
-                    cp app.py deploy/app.py
-                    python3 deploy/app.py
+                    sudo -H -u user kubectl get deployments
+                    sudo -H -u user kubectl get pods
+                    sudo -H -u user kubectl get services
                 '''
             }
         }
@@ -39,11 +31,8 @@ pipeline {
 
     post {
         success {
-            echo 'CI/CD Pipeline completed successfully!'
-        }
-
-        failure {
-            echo 'Pipeline failed.'
+            echo 'Continuous deployment completed successfully!'
         }
     }
 }
+
